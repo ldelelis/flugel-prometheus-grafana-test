@@ -1,0 +1,23 @@
+---
+- name: Ensure Prometheus package is installed
+  apt:
+    name: prometheus
+    state: present
+
+- name: Ensure desired prometheus configuration is installed
+  template:
+    src: prometheus.yml.j2
+    dest: /etc/prometheus/prometheus.yml
+  notify: Restart prometheus
+
+- name: Ensure desired alert rules are installed
+  copy:
+    src: alert.rules
+    dest: /etc/prometheus/alert.rules
+  notify: Restart prometheus
+
+- name: Ensure Prometheus service is running
+  service:
+    name: prometheus
+    state: started
+    enabled: yes

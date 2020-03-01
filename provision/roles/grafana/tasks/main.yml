@@ -1,0 +1,51 @@
+---
+- name: Ensure GnuPG is installed for PPA keys
+  apt:
+    name: gnupg2
+    state: present
+
+- name: Ensure Grafana's repo key is installed
+  apt_key:  # Is this correct? examples hardcode a key value
+    url: https://packages.grafana.com/gpg.key
+    state: present
+
+- name: Ensure Grafana's PPA is installed
+  apt_repository:
+    repo: deb https://packages.grafana.com/oss/deb stable main
+    state: present
+
+- name: Ensure grafana is installed
+  apt:
+    name: grafana
+    state: present
+
+- name: Ensure desired grafana config is installed
+  template:
+    src: grafana.ini.j2
+    dest: /etc/grafana/grafana.ini
+  notify: Restart grafana
+
+- name: Ensure desired datasource config is installed
+  copy:
+    src: datasource.yml
+    dest: /etc/grafana/provisioning/datasources/datasource.yml
+  notify: Restart grafana
+
+- name: Ensure desired dashboards exist
+  copy:
+    src: "{{ item }}"
+    dest: /etc/grafana/provisioning/dashboards/
+  with_fileglob:
+    - "*_dashboard.json"
+
+- name: Ensure desired dashboard configuration is installed on host
+  copy:
+    src: dashboard.yml
+    dest: /etc/grafana/provisioning/dashboards/dashboard.yml
+  notify: Restart grafana
+
+- name: Ensure grafana server is running
+  service:
+    name: grafana-server
+    state: started
+    enabled: yes

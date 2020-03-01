@@ -1,0 +1,30 @@
+---
+- name: Populate services data
+  service_facts:
+
+- name: Disable Apache if it's up
+  service:
+    name: apache2
+    state: stopped
+    enabled: no
+  when: "'apache2' in services"
+
+- name: Ensure nginx is installed
+  apt:
+    name: nginx
+    state: present
+
+- name: Copy hosts configurations
+  copy:
+    src: "{{ item }}.conf"
+    dest: "/etc/nginx/sites-available/{{ item }}"
+    force: no
+  loop: "{{ nginx_hosts | default([]) }}"
+
+- name: Enable declared hosts configurations
+  file:
+    src: "/etc/nginx/sites-available/{{ item }}"
+    dest: "/etc/nginx/sites-enabled/{{ item }}"
+    state: link
+  loop: "{{ nginx_hosts | default([]) }}"
+  notify: Reload nginx

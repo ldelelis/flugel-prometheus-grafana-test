@@ -1,0 +1,11 @@
+groups:
+- name: Node
+  rules:
+  - alert: disk_usage
+    expr: (node_filesystem_avail_bytes{mountpoint="/rootfs"}  * 100) / node_filesystem_size_bytes{mountpoint="/rootfs"} < 20
+    for: 5m
+    labels:
+      severity: page
+    annotations:
+      summary: "High disk usage on {{ $labels.instance }}"
+      description: "Root partition on {{ $labels.instance }} is close to being full."

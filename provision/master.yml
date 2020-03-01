@@ -1,0 +1,30 @@
+---
+- name: Master
+  hosts: all
+  become: yes
+  become_method: sudo
+
+  pre_tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+  roles:
+    - role: prometheus
+    - role: grafana
+    - role: nginx
+      vars:
+        nginx_hosts:
+          - grafana
+    - role: exporters
+      vars:
+        exporters:
+          - repo_name: blackbox_exporter
+            repo_owner: prometheus
+            version: 0.16.0
+            configuration_file: blackbox.yml
+    - role: letsencrypt
+      vars:
+        certbot_domains:
+          - flugel-grafana.ldelelis.dev
+        certbot_email: "me@ldelelis.dev"

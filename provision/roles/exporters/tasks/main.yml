@@ -1,0 +1,52 @@
+---
+- name: Ensure exporters user exists
+  user:
+    name: exporters
+    state: present
+    create_home: no
+
+- name: Ensure requested exporters exist
+  unarchive:
+    src: "https://github.com/{{ item.repo_owner }}/{{ item.repo_name }}/releases/download/v{{ item.version }}/{{ item.repo_name }}-{{ item.version }}.linux-amd64.tar.gz"
+    dest: /tmp
+    remote_src: yes
+    list_files: yes  # output files to save in register
+  loop: "{{ exporters }}"
+  register: exporters_unarchived
+
+- name: Install exporter executables
+  copy:
+    src: "/tmp/{{ exporters_unarchived.results[idx].files[0] }}/{{ item.repo_name }}"
+    dest: "/usr/local/bin/{{ item.repo_name }}"
+    remote_src: yes
+    mode: 0755  # octal value, use leading zero
+  loop: "{{ exporters }}"
+  loop_control:
+    index_var: idx
+
+- name: Ensure exporter configuration directory exists
+  file:
+    path: "/etc/{{ item.repo_name }}"
+    state: directory
+  when: item.configuration_file is defined
+  loop: "{{ exporters }}"
+
+- name: Ensure corresponding configuration files exist
+  copy:
+    src: "{{ item.configuration_file }}"
+    dest: "/etc/{{ item.repo_name }}/{{ item.configuration_file }}"
+  when: item.configuration_file is defined
+  loop: "{{ exporters }}"
+
+- name: Ensure systemd service files for the requested exporters exist
+  copy:
+    src: "{{ item.repo_name }}.service"
+    dest: "/etc/systemd/system/{{ item.repo_name }}.service"
+  loop: "{{ exporters }}"
+
+- name: Ensure new systemd services are enabled
+  service:
+    name: "{{ item.repo_name }}"
+    state: started
+    enabled: yes
+  loop: "{{ exporters }}"

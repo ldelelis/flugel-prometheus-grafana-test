@@ -1,0 +1,5 @@
+.envrc
+.terraform/
+*.pyc
+__pycache__/
+.vagrant/

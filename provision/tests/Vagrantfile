@@ -1,0 +1,29 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+machine_networks = {
+  master: "172.16.5.101",
+  node1: "172.16.5.102"
+}
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "bento/ubuntu-18.04"
+
+  config.vm.define "master" do |master|
+    master.vm.network "private_network", ip: machine_networks[:master]
+    master.vm.network "forwarded_port", guest: 3000, host: 3000
+    master.vm.network "forwarded_port", guest: 9090, host: 9090
+  end
+
+  config.vm.define "node1" do |node|
+    node.vm.network "private_network", ip: machine_networks[:node1]
+
+  end
+  config.vm.provision "ansible", after: :all do |ans|
+    ans.groups = {
+      nodes: ["node1"],
+      master: ["master"]
+    }
+    ans.playbook = "../site.yml"
+  end
+end

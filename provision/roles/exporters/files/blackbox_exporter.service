@@ -1,0 +1,9 @@
+[Unit]
+Description=Blackbox Exporter
+
+[Service]
+User=exporters
+ExecStart=/usr/local/bin/blackbox_exporter --config.file /etc/blackbox_exporter/blackbox.yml
+
+[Install]
+WantedBy=multi-user.target

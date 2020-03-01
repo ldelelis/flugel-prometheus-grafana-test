@@ -1,0 +1,17 @@
+---
+- name: Ensure certbot and its plugins are installed
+  apt:
+    name:
+      - certbot
+      - python-certbot-nginx
+    state: present
+
+- name: Emit certificates
+  shell: "certbot -d {{ certbot_domains | join(',') }} {{ (certbot_staging | default(false) | bool) | ternary('--test-cert', '') }} -m {{ certbot_email }} {{ certbot_options }}"
+
+- name: Ensure renewal crontab is installed
+  cron:
+    name: "check and renovate certbot certificates"
+    job: "certbot renew"
+    hour: "0"
+    state: present

@@ -1,0 +1,24 @@
+---
+- name: Service nodes
+  hosts: all
+  become: yes
+  become_method: sudo
+
+  pre_tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+  roles:
+    - role: exporters
+      vars:
+        exporters:
+          - repo_name: node_exporter
+            repo_owner: prometheus
+            version: 0.18.0
+    - role: nginx
+    - role: letsencrypt
+      vars:
+        certbot_domains:
+          - flugel-node.ldelelis.dev
+        certbot_email: "me@ldelelis.dev"

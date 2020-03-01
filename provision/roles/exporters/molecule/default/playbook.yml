@@ -1,0 +1,17 @@
+---
+- name: Converge
+  hosts: all
+  become: yes
+  become_method: sudo
+
+  roles:
+    - role: exporters
+      vars:
+        exporters:
+          - repo_name: node_exporter
+            repo_owner: prometheus
+            version: 0.18.0
+          - repo_name: blackbox_exporter
+            repo_owner: prometheus
+            version: 0.16.0
+            configuration_file: blackbox.yml
