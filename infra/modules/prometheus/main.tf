@@ -124,6 +124,10 @@ resource "null_resource" "provision_master" {
   }
 
   provisioner "local-exec" {
+    command = "sleep 30" # Wait for DO record to propagate correctly
+  }
+
+  provisioner "local-exec" {
     command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i '${digitalocean_record.master_domain_record.fqdn},' -u ubuntu --private-key ${var.ec2_ssh_key} -e 'ec2_instance_region=${var.aws_region} ec2_instance_profile_arn=${aws_iam_instance_profile.ec2_discovery_profile.arn} certbot_staging=true' ../../provision/master.yml"
   }
 }
